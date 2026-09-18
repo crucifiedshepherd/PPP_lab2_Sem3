@@ -37,7 +37,7 @@
 ### 1. Клонирование репозитория
 
 ```bash
-git clone https://github.com/username/PPP_lab2_Sem3.git
+git clone https://github.com/crucifiedshepherd/PPP_lab2_Sem3.git
 cd PPP_lab2_Sem3
 ```
 

@@ -2,16 +2,16 @@ from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 from src.data import (
-    AFFIRMATIONS,
+    AFFIRMATION,
     BREATHING_EXERCISES,
     MEDITATIONS,
-    MOODS,
+    MOOD_RESPONSES,
     RELAXATION_TIPS,
 )
 
 
-def main_menu() -> ReplyKeyboardMarkup:
-    """Create the main menu keyboard."""
+def main_menu():
+    """Создает главное меню бота."""
     keyboard = [
         ["🧘 Медитации"],
         ["🌬 Дыхательные упражнения"],
@@ -23,8 +23,29 @@ def main_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send the welcome message and show the main menu."""
+def meditation_menu():
+    """Создает меню выбора медитации."""
+    keyboard = [
+        ["Медитация на 5 минут"],
+        ["Медитация перед сном"],
+        ["Медитация для расслабления"],
+        ["⬅️ Назад"],
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+
+def breathing_menu():
+    """Создает меню дыхательных упражнений."""
+    keyboard = [
+        ["Дыхание 4-4"],
+        ["Дыхание для расслабления"],
+        ["⬅️ Назад"],
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает приветствие и главное меню."""
     await update.message.reply_text(
         "Привет! Я бот для медитации и ментального здоровья. 🧘\n"
         "Выбери нужный раздел в меню.",
@@ -34,85 +55,81 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(
     update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """Show available bot commands."""
+):
+    """Показывает доступные команды бота."""
     await update.message.reply_text(
         "/start — запустить бота\n"
         "/help — показать помощь\n\n"
-        "Также можно использовать кнопки меню."
+        "Также можно использовать кнопки меню.",
+        reply_markup=main_menu(),
     )
 
 
-async def handle_message(
+async def show_meditations(
     update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """Process messages received from the main menu."""
-    message = update.message.text
+):
+    """Показывает доступные медитации."""
+    await update.message.reply_text(
+        "Выбери медитацию:",
+        reply_markup=meditation_menu(),
+    )
 
-    if message == "🧘 Медитации":
-        keyboard = [
-            list(MEDITATIONS.keys()),
-            ["⬅️ Назад"],
-        ]
+
+async def show_meditation(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """Показывает выбранную медитацию."""
+    meditation = MEDITATIONS.get(update.message.text)
+
+    if meditation:
         await update.message.reply_text(
-            "Выбери медитацию:",
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard,
-                resize_keyboard=True,
-            ),
+            meditation,
+            reply_markup=meditation_menu(),
         )
 
-    elif message in MEDITATIONS:
-        await update.message.reply_text(MEDITATIONS[message])
 
-    elif message == "🌬 Дыхательные упражнения":
-        keyboard = [
-            list(BREATHING_EXERCISES.keys()),
-            ["⬅️ Назад"],
-        ]
+async def show_breathing(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """Показывает доступные дыхательные упражнения."""
+    await update.message.reply_text(
+        "Выбери дыхательное упражнение:",
+        reply_markup=breathing_menu(),
+    )
+
+
+async def show_breathing_exercise(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """Показывает выбранное дыхательное упражнение."""
+    exercise = BREATHING_EXERCISES.get(update.message.text)
+
+    if exercise:
         await update.message.reply_text(
-            "Выбери дыхательное упражнение:",
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard,
-                resize_keyboard=True,
-            ),
+            exercise,
+            reply_markup=breathing_menu(),
         )
 
-    elif message in BREATHING_EXERCISES:
-        await update.message.reply_text(BREATHING_EXERCISES[message])
 
-    elif message == "🌿 Советы по релаксации":
-        await update.message.reply_text(RELAXATION_TIPS)
+async def show_relaxation_tips(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """Показывает советы по релаксации."""
+    tips = "\n".join(
+        f"• {tip}" for tip in RELAXATION_TIPS
+    )
 
-    elif message == "😊 Трекер настроения":
-        keyboard = [
-            ["😊 Хорошее", "🙂 Нормальное"],
-            ["😐 Нейтральное", "😔 Грустное"],
-            ["😣 Тревожное"],
-            ["⬅️ Назад"],
-        ]
-        await update.message.reply_text(
-            "Какое у тебя сейчас настроение?",
-            reply_markup=ReplyKeyboardMarkup(
-                keyboard,
-                resize_keyboard=True,
-            ),
-        )
+    await update.message.reply_text(
+        f"Несколько простых советов:\n\n{tips}",
+        reply_markup=main_menu(),
+    )
 
-    elif message in MOODS:
-        await update.message.reply_text(MOODS[message])
 
-    elif message == "💭 Ежедневные аффирмации":
-        affirmation = AFFIRMATIONS[0]
-        await update.message.reply_text(
-            f"Твоя аффирмация на сегодня:\n\n{affirmation}"
-        )
-
-    elif message == "⬅️ Назад":
-        await update.message.reply_text(
-            "Главное меню:",
-            reply_markup=main_menu(),
-        )
-
-    elif message == "❓ Помощь":
-        await help_command(update, context)
+async def back_to_menu(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
+    """Возвращает пользователя в главное меню."""
+    await update.message.reply_text(
+        "Главное меню:",
+        reply_markup=main_menu(),
+    )
