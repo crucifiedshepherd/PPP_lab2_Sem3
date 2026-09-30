@@ -133,3 +133,38 @@ async def back_to_menu(
         "Главное меню:",
         reply_markup=main_menu(),
     )
+
+def mood_menu():
+    """Создает меню выбора настроения."""
+    keyboard = [
+        ["😊 Хорошее"],
+        ["😐 Нейтральное"],
+        ["😔 Грустное"],
+        ["⬅️ Назад"],
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+
+async def show_mood(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает меню выбора настроения."""
+    await update.message.reply_text(
+        "Какое у тебя сегодня настроение?",
+        reply_markup=mood_menu(),
+    )
+
+
+async def show_mood_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отвечает на выбранное настроение."""
+    response = MOOD_RESPONSES.get(update.message.text)
+    if response:
+        await update.message.reply_text(response, reply_markup=main_menu())
+
+
+async def show_affirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает ежедневную аффирмацию."""
+    await update.message.reply_text(AFFIRMATION, reply_markup=main_menu())
+
+
+async def show_relaxation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показывает советы по релаксации."""
+    await update.message.reply_text(RELAXATION_TIPS, reply_markup=main_menu())
